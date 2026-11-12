@@ -1,5 +1,5 @@
 const http=require('http'),crypto=require('crypto'),{WebSocketServer}=require('ws');
-const BOT=process.env.BOT_TOKEN||'',BUSER=process.env.BOT_USERNAME||'LayloUonBot',APP=process.env.APP_SHORT||'uno';
+const BOT=process.env.BOT_TOKEN||'',BUSER=process.env.BOT_USERNAME||'LaylUnoBot',APP=process.env.APP_SHORT||'uno';
 const VIP=String(process.env.LAYLA_ID||'').trim(),TGAPI=process.env.TG_API||'https://api.telegram.org';
 const PUB=(process.env.PUBLIC_URL||process.env.RENDER_EXTERNAL_URL||'https://b-server-sbju.onrender.com').replace(/\/+$/,''),IMG=process.env.IMG_URL||PUB+'/uno.jpg';
 const WELCOME='اهلا بك في بوت Layl Uno\nاضغط للعب ال Uno',INVITE='🃏 I have opened a table on Layl UNO\n\nA table for 2, and it starts the moment the last seat is taken — nobody is waiting on a host. Tap Join below before it fills up.';
@@ -10,7 +10,7 @@ const mk=()=>{const d=[];for(const c of'rygb'){d.push({c,v:'0'});for(let i=1;i<1
 const ok=(g,k)=>k.c==='w'||k.c===g.cur||k.v===g.D[g.D.length-1].v;
 const nc=()=>Math.random().toString(36).slice(2,10);
 function draw(g,p,n){for(let i=0;i<n;i++){if(!g.P.length){const t=g.D.pop();g.P=sh(g.D);g.D=[t];if(!g.P.length)return}g.pl[p].h.push(g.P.pop())}}
-function send(g,only){const now=Date.now(),b={t:'s',code:g.code,ph:g.ph,top:g.D&&g.D[g.D.length-1],dn:g.D?g.D.length:0,cur:g.cur,dir:g.dir,turn:g.turn,drew:g.drew,tl:Math.max(0,(g.dl||now)-now),gl:Math.max(0,(g.end||now)-now),win:g.win,why:g.why,vip:g.pl.findIndex(p=>VIP&&p.id===VIP),ob:(g.sp||[]).length,pl:g.pl.map(q=>({n:q.n,pic:q.pic,c:q.h.length}))};
+function send(g,only){const now=Date.now(),b={t:'s',code:g.code,ph:g.ph,top:g.D&&g.D[g.D.length-1],dn:g.D?g.D.length:0,cur:g.cur,dir:g.dir,turn:g.turn,drew:g.drew,tl:Math.max(0,(g.dl||now)-now),gl:Math.max(0,(g.end||now)-now),win:g.win,why:g.why,vip:g.pl.findIndex(p=>VIP&&p.id===VIP),ob:(g.sp||[]).length,sp:(g.sp||[]).filter(o=>o.ws).map(o=>({n:o.n,pic:o.pic||''})),pl:g.pl.map(q=>({n:q.n,pic:q.pic,c:q.h.length}))};
 g.pl.forEach((p,i)=>{if(p.ws&&p.ws.readyState===1&&(!only||only===p.ws))p.ws.send(JSON.stringify({...b,me:i,h:p.h}))});
 (g.sp||[]).forEach(o=>{if(o.ws&&o.ws.readyState===1&&(!only||only===o.ws))o.ws.send(JSON.stringify({...b,me:0,spec:1,h:g.pl[0]?g.pl[0].h.map(()=>({c:'x',v:'0'})):[]}))})}
 function arm(g,ms){clearTimeout(g.tt);g.dl=Date.now()+ms;g.tt=setTimeout(()=>tick(g),ms)}
@@ -35,7 +35,7 @@ if(!code){const w=Q&&R.get(Q);if(w&&w.ph==='wait'&&w.pl.length===1&&w.pl[0].id!=
 g=R.get(code);if(!g){g={code,pl:[],ph:'wait',dir:1};R.set(code,g)}
 let i=g.pl.findIndex(p=>p.id===id);
 if(i<0){if(g.pl.length>=2){g.sp=g.sp||[];let o=g.sp.find(x=>x.id===id);if(!o){if(g.sp.length>=30){ws.send('{"t":"full"}');g=null;return}o={id};g.sp.push(o)}
-if(o.ws&&o.ws!==ws){try{o.ws.close()}catch{}}o.ws=ws;o.n=String(u.first_name||u.username||'Player').slice(0,24);spec=o;send(g);return}
+if(o.ws&&o.ws!==ws){try{o.ws.close()}catch{}}o.ws=ws;o.n=String(u.first_name||u.username||'Player').slice(0,24);o.pic=String(u.photo_url||'').slice(0,300);spec=o;send(g);return}
 i=g.pl.push({id,h:[],miss:0})-1}
 me=i;clearTimeout(g.pl[i].dt);Object.assign(g.pl[i],{ws,n:String(u.first_name||u.username||'Player').slice(0,24),pic:String(u.photo_url||'').slice(0,300)});
 if(g.pl.length===2&&g.ph==='wait'){if(Q===code)Q=null;begin(g)}
