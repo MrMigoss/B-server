@@ -1,4 +1,4 @@
-const http=require('http'),crypto=require('crypto'),{WebSocketServer}=require('ws');
+const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto'),{WebSocketServer}=require('ws');
 const BOT=process.env.BOT_TOKEN||'',BUSER=process.env.BOT_USERNAME||'LaylUnoBot',APP=process.env.APP_SHORT||'uno';
 const VIP=String(process.env.LAYLA_ID||'').trim(),TGAPI=process.env.TG_API||'https://api.telegram.org';
 const PUB=(process.env.PUBLIC_URL||process.env.RENDER_EXTERNAL_URL||'https://b-server-sbju.onrender.com').replace(/\/+$/,''),IMG=process.env.IMG_URL||PUB+'/uno.jpg';
@@ -25,7 +25,7 @@ g.end=Date.now()+GAME+2500;arm(g,TURN+2500);g.et=setTimeout(()=>finish(g),GAME+2
 function vfy(init){try{const p=new URLSearchParams(init),h=p.get('hash');p.delete('hash');if(!h||Date.now()/1000-(+p.get('auth_date')||0)>86400)return null;
 const s=[...p].map(([k,v])=>k+'='+v).sort().join('\n'),k=crypto.createHmac('sha256','WebAppData').update(BOT).digest();
 return crypto.createHmac('sha256',k).update(s).digest('hex')===h?JSON.parse(p.get('user')):null}catch{return null}}
-const srv=http.createServer((q,r)=>{if((q.url||'').split('?')[0]==='/uno.jpg'){r.writeHead(200,{'content-type':'image/jpeg','content-length':IMGB.length,'cache-control':'public,max-age=86400'});return r.end(q.method==='HEAD'?undefined:IMGB)}r.writeHead(200);r.end('ok')}),wss=new WebSocketServer({server:srv});
+const srv=http.createServer((q,r)=>{if((q.url||'').split('?')[0]==='/uno.jpg'){r.writeHead(200,{'content-type':'image/jpeg','content-length':IMGB.length,'cache-control':'public,max-age=86400'});return r.end(q.method==='HEAD'?undefined:IMGB)}const u=(q.url||'').split('?')[0];if(u==='/'||u==='/index.html'){fs.readFile(path.join(__dirname,'index.html'),(e,d)=>{if(e){r.writeHead(200);return r.end('ok')}r.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-cache'});r.end(q.method==='HEAD'?undefined:d)});return}r.writeHead(200);r.end('ok')}),wss=new WebSocketServer({server:srv});
 wss.on('connection',ws=>{let g,me,spec;ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);
 ws.on('message',raw=>{let d;try{d=JSON.parse(raw)}catch{return}
 if(!d||d.t==='ping')return;
