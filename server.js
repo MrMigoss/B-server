@@ -69,7 +69,7 @@ if(!r.ok)await tg('sendMessage',{chat_id:chat,text:WELCOME,reply_markup:WKB})}ca
 async function upImg(chat){const f=new FormData();f.append('chat_id',String(chat));f.append('disable_notification','true');f.append('photo',new Blob([IMGB],{type:'image/jpeg'}),'uno.jpg');
 const r=await(await fetch(`${TGAPI}/bot${BOT}/sendPhoto`,{method:'POST',body:f})).json();
 if(r.ok){const ph=r.result.photo;if(ph&&ph.length)FID=ph[ph.length-1].file_id;tg('deleteMessage',{chat_id:chat,message_id:r.result.message_id}).catch(()=>{})}return r}
-async function inl(q){const c=nc(),url=`https://t.me/${BUSER}/${APP}?startapp=${c}`,jb={inline_keyboard:[[{text:'Join the game',url}]]},ps=INVITE.split('\n').filter(Boolean);
+async function inl(q){const c=String(q.query||'').replace(/[^\w-]/g,'').slice(0,24)||nc(),url=`https://t.me/${BUSER}/${APP}?startapp=${c}`,jb={inline_keyboard:[[{text:'Join the game',url}]]},ps=INVITE.split('\n').filter(Boolean);
 const art={type:'article',id:c,title:'🃏 Layl UNO',description:(ps[1]||ps[0]).slice(0,110),thumbnail_url:IMG,thumbnail_width:320,thumbnail_height:180,input_message_content:{message_text:INVITE,link_preview_options:{url:IMG,show_above_text:true,prefer_large_media:true}},reply_markup:jb};
 let a=await tg('answerInlineQuery',{inline_query_id:q.id,cache_time:0,is_personal:true,results:[art]});
 if(!a.ok){art.input_message_content={message_text:INVITE};a=await tg('answerInlineQuery',{inline_query_id:q.id,cache_time:0,is_personal:true,results:[art]})}
