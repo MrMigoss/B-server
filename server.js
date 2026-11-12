@@ -44,9 +44,7 @@ if(spec){if(d.t==='leave'){g.sp=g.sp.filter(x=>x!==spec);spec.ws=null;g=null;spe
 if(d.t==='leave'){if(g.ph==='wait')R.delete(g.code);else finish(g,1-me,'left');return}
 if(g.ph!=='play'||g.turn!==me)return;
 const p=g.pl[me];
-if(d.t==='draw'&&!g.drew){const n0=p.h.length;draw(g,me,1);g.drew=true;p.miss=0;send(g);
-if(p.h.length===n0)return adv(g,1);
-if(!ok(g,p.h[p.h.length-1]))setTimeout(()=>{if(g.ph==='play'&&g.turn===me&&g.drew)adv(g,1)},900)}
+if(d.t==='draw'&&!g.drew){draw(g,me,1);p.miss=0;adv(g,1)}
 else if(d.t==='pass'&&g.drew){p.miss=0;adv(g,1)}
 else if(d.t==='play'){const k=p.h[d.i];
 if(!k||!ok(g,k)||(g.drew&&d.i!==p.h.length-1)||(k.c==='w'&&!'rygb'.includes(d.c)))return send(g);
@@ -59,16 +57,26 @@ ws.on('close',()=>{if(spec&&g&&spec.ws===ws){spec.ws=null;g.sp=(g.sp||[]).filter
 setInterval(()=>wss.clients.forEach(w=>{if(!w.isAlive)return w.terminate();w.isAlive=false;w.ping()}),25000);
 process.on('uncaughtException',e=>console.error(e));
 async function tg(m,b){const r=await fetch(`${TGAPI}/bot${BOT}/${m}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});return r.json()}
-const WKB={inline_keyboard:[[{text:'Against a friend',switch_inline_query_chosen_chat:{query:'',allow_user_chats:true,allow_group_chats:true,allow_channel_chats:false,allow_bot_chats:false}}]]};
+let CH=String(process.env.CHANNEL_URL||'').trim();if(CH[0]==='@')CH='https://t.me/'+CH.slice(1);else if(CH&&!/^(https?:|tg:)/i.test(CH))CH='https://'+CH;
+const WKB={inline_keyboard:[[{text:'Against a friend',switch_inline_query_chosen_chat:{query:'',allow_user_chats:true,allow_group_chats:true,allow_channel_chats:false,allow_bot_chats:false}}]].concat(CH?[[{text:'Channel',url:CH}]]:[])};
 async function welcome(chat){try{let r;if(FID)r=await tg('sendPhoto',{chat_id:chat,photo:FID,caption:WELCOME,reply_markup:WKB});
 if(!r||!r.ok){const f=new FormData();f.append('chat_id',String(chat));f.append('caption',WELCOME);f.append('reply_markup',JSON.stringify(WKB));f.append('photo',new Blob([IMGB],{type:'image/jpeg'}),'uno.jpg');
 r=await(await fetch(`${TGAPI}/bot${BOT}/sendPhoto`,{method:'POST',body:f})).json();
 if(r.ok){const ph=r.result.photo;FID=ph&&ph.length?ph[ph.length-1].file_id:null}}
 if(!r.ok)await tg('sendMessage',{chat_id:chat,text:WELCOME,reply_markup:WKB})}catch(e){console.error(e)}}
+async function upImg(chat){const f=new FormData();f.append('chat_id',String(chat));f.append('disable_notification','true');f.append('photo',new Blob([IMGB],{type:'image/jpeg'}),'uno.jpg');
+const r=await(await fetch(`${TGAPI}/bot${BOT}/sendPhoto`,{method:'POST',body:f})).json();
+if(r.ok){const ph=r.result.photo;if(ph&&ph.length)FID=ph[ph.length-1].file_id;tg('deleteMessage',{chat_id:chat,message_id:r.result.message_id}).catch(()=>{})}return r}
+async function inl(q){const c=nc(),jb={inline_keyboard:[[{text:'Join the game',url:`https://t.me/${BUSER}/${APP}?startapp=${c}`}]]};
+if(!FID){try{await upImg(q.from.id)}catch(e){console.error(e)}}
+const art={type:'article',id:c,title:'🃏 Layl UNO',description:'Against a friend',thumbnail_url:IMG,input_message_content:{message_text:INVITE},reply_markup:jb};
+const ph={type:'photo',id:c,photo_file_id:FID,title:'🃏 Layl UNO',description:'Against a friend',caption:INVITE,reply_markup:jb};
+let a=await tg('answerInlineQuery',{inline_query_id:q.id,cache_time:0,is_personal:true,results:[FID?ph:art]});
+if(!a.ok&&FID){FID=null;a=await tg('answerInlineQuery',{inline_query_id:q.id,cache_time:0,is_personal:true,results:[art]})}
+if(!a.ok)console.error('inline',a)}
 async function poll(){let off=0;for(;;){try{const r=await tg('getUpdates',{offset:off,timeout:25,allowed_updates:['inline_query','message']});
 for(const u of r.result||[]){off=u.update_id+1;const q=u.inline_query,m=u.message;
-if(q){const c=nc(),jb={inline_keyboard:[[{text:'Join the game',url:`https://t.me/${BUSER}/${APP}?startapp=${c}`}]]};
-await tg('answerInlineQuery',{inline_query_id:q.id,cache_time:0,is_personal:true,results:[{type:'photo',id:c,photo_url:IMG,thumbnail_url:IMG,photo_width:1280,photo_height:720,title:'🃏 Layl UNO',description:'Against a friend',caption:INVITE,reply_markup:jb}]})}
+if(q)await inl(q)
 else if(m&&m.text&&m.text.startsWith('/start'))await welcome(m.chat.id)}}catch(e){await new Promise(r=>setTimeout(r,3000))}}}
 if(BOT)tg('deleteWebhook',{}).then(poll).catch(()=>{});
 srv.listen(process.env.PORT||8080);
