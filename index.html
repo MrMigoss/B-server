@@ -146,7 +146,7 @@ const DECO=[[12,-4,-35,{c:'r',v:'R'}],[18.7,-2.5,-20,{c:'g',v:'S'}],[23.7,-1.5,-
 const mine=()=>S&&S.ph==='play'&&!S.spec&&S.turn===S.me,ok=k=>k.c==='w'||k.c===S.cur||k.v===S.top.v,can=i=>mine()&&ok(S.h[i])&&(!S.drew||i===S.h.length-1);
 const snd=m=>ws&&ws.readyState===1&&ws.send(JSON.stringify(m));
 function drw(){if(mine()&&!S.drew)snd({t:'draw'})}
-function inv(){const u=LINK+'?startapp='+(S&&S.code||room),l='https://t.me/share/url?url='+encodeURIComponent(u)+'&text='+encodeURIComponent('تعال العب UNO معي!');T&&T.openTelegramLink?T.openTelegramLink(l):window.open(l)}
+function inv(){const c=S&&S.code||room;try{if(T&&T.switchInlineQuery&&(!T.isVersionAtLeast||T.isVersionAtLeast('6.7'))){T.switchInlineQuery(String(c||''),['users','groups']);return}}catch(e){}const u=LINK+'?startapp='+c,l='https://t.me/share/url?url='+encodeURIComponent(u)+'&text='+encodeURIComponent('تعال العب UNO معي!');T&&T.openTelegramLink?T.openTelegramLink(l):window.open(l)}
 function leave(){try{ws.send('{"t":"leave"}')}catch(e){}try{T.close()}catch(e){location.reload()}}
 const img=p=>p.pic?`<img src="${esc(p.pic)}" alt="">`:'';
 let EYE=0;function eyeL(){EYE=!EYE;eyeR()}
